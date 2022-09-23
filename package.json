@@ -1,0 +1,26 @@
+{
+  "name": "lba1-voice-noise-reduction",
+  "version": "0.1.0",
+  "description": "Little Big Adventure Voice Samples Noise Reduction",
+  "scripts": {
+    "start": "ts-node src/convert.ts"
+  },
+  "dependencies": {
+    "@lbalab/hqr": "^3.4.1",
+    "@types/lodash": "^4.14.185",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.3",
+    "@babel/register": "^7.13.16",
+    "@types/node": "^13.13.52",
+    "ffmpeg-cli": "^2.7.3",
+    "ts-loader": "^6.2.2",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.9"
+  },
+  "repository": "https://github.com/LBALab/lba1-voice-noise-reduction.git",
+  "author": "Alexandre Fontoura",
+  "license": "MIT",
+  "readme": "README.md"
+}
