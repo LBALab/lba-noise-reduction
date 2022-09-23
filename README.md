@@ -4,7 +4,7 @@ This is a tool to reduce the noise in the voice samples of Little Big Adventure 
 
 ## Usage
 
-1. You need to own the Classic version of Little Big Adventure 1 from itch.io, Steam or GOG
+1. You need to own the Classic version of Little Big Adventure 1 from [itch.io](https://itch.io/s/61876/adeline-software-collection), [Steam](https://store.steampowered.com/developer/2_21) or [GOG](https://www.gog.com/en/games?developers=2-21)
 2. Place the contents of the game in the `data` folder like this:
     - `data/Little Big Adventure/Common`
     - `data/Little Big Adventure/CommonClassic/Voices`
