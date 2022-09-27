@@ -19,7 +19,7 @@ const createFolderIfNotExists = (folderPath: string) => {
 const toArrayBuffer = (b: Buffer) =>
     b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
 
-const voiceConvertor = async (game) => {
+const voiceConvertor = async (game, num_passes = 3) => {
     const folderPath = path.normalize(`./data/${game}/Common/Vox/`);
     const outputPath = path.normalize(`./data/${game}/CommonClassic/Voices/`);
     const files = fs.readdirSync(folderPath);
@@ -71,7 +71,9 @@ const voiceConvertor = async (game) => {
             }
             fs.writeFileSync(wavFilePath, Buffer.from(entry.content));
 
-            await convertToM4aAudio(wavFilePath, mp4FilePath, bitrate);
+            for (let k = 0; k < num_passes; k += 1) {
+                await convertToM4aAudio(wavFilePath, mp4FilePath, bitrate);
+            }
             const mp4File = fs.readFileSync(mp4FilePath);
             const tgtEntry = new HQREntry(
                 toArrayBuffer(mp4File),
@@ -108,11 +110,14 @@ const voiceConvertor = async (game) => {
                     Buffer.from(hiddenEntry.content),
                 );
 
-                await convertToM4aAudio(
-                    hiddenWavFilePath,
-                    hiddenMp4FilePath,
-                    bitrate,
-                );
+                // first pass
+                for (let k = 0; k < num_passes; k += 1) {
+                    await convertToM4aAudio(
+                        hiddenWavFilePath,
+                        hiddenMp4FilePath,
+                        bitrate,
+                    );
+                }
                 const hiddenMp4File = fs.readFileSync(hiddenMp4FilePath);
                 const hiddenTgtEntry = new HQREntry(
                     toArrayBuffer(hiddenMp4File),
@@ -133,10 +138,15 @@ const convertToM4aAudio = async (
     console.log(
         `Converting ${inputFilePath} to ${outputFilePath} with bitrate ${bitrate}k`,
     );
+    if (fs.existsSync(outputFilePath)) {
+        fs.copyFileSync(outputFilePath, `${outputFilePath}.bak`);
+        inputFilePath = `${outputFilePath}.bak`;
+    }
     removeFile(outputFilePath);
     FFmpeg.runSync(
         `-i "${inputFilePath}" -c:a libvorbis -b:a ${bitrate}k -af "afftdn=nt=w:tn=enabled" "${outputFilePath}"`,
     );
+    removeFile(`${outputFilePath}.bak`);
 };
 
 voiceConvertor('Little Big Adventure');
