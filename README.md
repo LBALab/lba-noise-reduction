@@ -18,6 +18,8 @@ The original ogg files existing in the `CommonClassic/Voices` folder will be ove
 
 By default, the conversion does 3 passes, and you can change it in the `voiceConvertor` function. The first pass is the most important one, the others have small improvements.
 
+New VOX packed files will be created in the `data/Little Big Adventure/CommonClassic/Voices` folder including the existing files in the `CommonClassic/Voices` folder.
+
 
 ## Credits
 

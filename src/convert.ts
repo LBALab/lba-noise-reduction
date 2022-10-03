@@ -19,6 +19,10 @@ const createFolderIfNotExists = (folderPath: string) => {
 const toArrayBuffer = (b: Buffer) =>
     b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
 
+const getBaseName = (fileName: string) => {
+    return `${path.basename(fileName, path.extname(fileName))}`;
+};
+
 const voiceConvertor = async (game, num_passes = 3) => {
     const folderPath = path.normalize(`./data/${game}/Common/Vox/`);
     const outputPath = path.normalize(`./data/${game}/CommonClassic/Voices/`);
@@ -33,6 +37,7 @@ const voiceConvertor = async (game, num_passes = 3) => {
     for (let i = 0; i < size; i += 1) {
         const fileName = filesToConvert[i];
         const inputFile = `${folderPath}${fileName}`;
+        const nameOnly = getBaseName(fileName);
         const file = fs.readFileSync(inputFile);
         if (file == null) {
             console.error(`File not found: ${inputFile}`);
@@ -40,14 +45,19 @@ const voiceConvertor = async (game, num_passes = 3) => {
         }
         const language = fileName.substring(0, 2);
         const hqrIn = HQR.fromArrayBuffer(toArrayBuffer(file));
+        const hqrOut = new HQR();
         for (let j = 0; j < hqrIn.entries.length; j += 1) {
             const entry = hqrIn.entries[j];
             if (!entry) {
                 console.log(`Skipping HQR entry #${j}`);
+                hqrOut.entries.push(null);
                 continue;
             }
             if (entry instanceof HQRVirtualEntry) {
                 console.log(`Copying HQR virtual entry #${j}`);
+                hqrOut.entries.push(
+                    new HQRVirtualEntry(hqrOut, entry.target, entry.metadata),
+                );
                 continue;
             }
             console.log(`Processing HQR entry #${j}`);
@@ -79,7 +89,9 @@ const voiceConvertor = async (game, num_passes = 3) => {
                 toArrayBuffer(mp4File),
                 CompressionType.NONE,
             );
+            hqrOut.entries.push(tgtEntry);
             fs.unlinkSync(wavFilePath);
+            fs.unlinkSync(mp4FilePath);
 
             for (let k = 0; k < entry.hiddenEntries.length; k += 1) {
                 const hiddenEntry = entry.hiddenEntries[k];
@@ -125,9 +137,18 @@ const voiceConvertor = async (game, num_passes = 3) => {
                 );
                 tgtEntry.hiddenEntries.push(hiddenTgtEntry);
                 fs.unlinkSync(hiddenWavFilePath);
+                fs.unlinkSync(hiddenMp4FilePath);
             }
         }
+
+        const outputFile = `${outputPath}${nameOnly}.VOX`;
+        fs.writeFileSync(outputFile, Buffer.from(hqrOut.toArrayBuffer()));
     }
+
+    const getBasePath = (language) => `${outputPath}/${language}_VOICE/`;
+    fs.rmdirSync(getBasePath('DE'), { recursive: true });
+    fs.rmdirSync(getBasePath('EN'), { recursive: true });
+    fs.rmdirSync(getBasePath('FR'), { recursive: true });
 };
 
 const convertToM4aAudio = async (
