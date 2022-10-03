@@ -1,3 +1,4 @@
+import os from 'os';
 import fs from 'fs';
 import path from 'path';
 import FFmpeg from 'ffmpeg-cli';
@@ -90,8 +91,8 @@ const voiceConvertor = async (game, num_passes = 3) => {
                 CompressionType.NONE,
             );
             hqrOut.entries.push(tgtEntry);
-            fs.unlinkSync(wavFilePath);
-            fs.unlinkSync(mp4FilePath);
+            removeFile(wavFilePath);
+            removeFile(mp4FilePath);
 
             for (let k = 0; k < entry.hiddenEntries.length; k += 1) {
                 const hiddenEntry = entry.hiddenEntries[k];
@@ -136,8 +137,8 @@ const voiceConvertor = async (game, num_passes = 3) => {
                     CompressionType.NONE,
                 );
                 tgtEntry.hiddenEntries.push(hiddenTgtEntry);
-                fs.unlinkSync(hiddenWavFilePath);
-                fs.unlinkSync(hiddenMp4FilePath);
+                removeFile(hiddenWavFilePath);
+                removeFile(hiddenMp4FilePath);
             }
         }
 
@@ -149,6 +150,66 @@ const voiceConvertor = async (game, num_passes = 3) => {
     fs.rmdirSync(getBasePath('DE'), { recursive: true });
     fs.rmdirSync(getBasePath('EN'), { recursive: true });
     fs.rmdirSync(getBasePath('FR'), { recursive: true });
+};
+
+const samplesConvertor = async (game, num_passes = 3) => {
+    const filePath = path.normalize(`./data/${game}/Common/SAMPLES.HQR`);
+    const bitrate = 32;
+
+    const file = fs.readFileSync(filePath);
+    if (file == null) {
+        console.error(`File not found: ${filePath}`);
+        return;
+    }
+
+    const hqrIn = HQR.fromArrayBuffer(toArrayBuffer(file));
+    const hqrOut = new HQR();
+    for (let i = 0; i < hqrIn.entries.length; i += 1) {
+        const entry = hqrIn.entries[i];
+        if (!entry) {
+            hqrOut.entries.push(null);
+            console.log(`Skipping HQR entry #${i}`);
+            continue;
+        }
+        if (entry instanceof HQRVirtualEntry) {
+            console.log(`Copying HQR virtual entry #${i}`);
+            hqrOut.entries.push(
+                new HQRVirtualEntry(hqrOut, entry.target, entry.metadata),
+            );
+            continue;
+        }
+        console.log(`Processing HQR entry #${i}`);
+        const ext = game === 'Little Big Adventure 2' ? 'wav' : 'voc';
+        const wavFilePath = path.normalize(`${os.tmpdir()}/SAMPLE_${i}.${ext}`);
+        const mp4FilePath = path.normalize(`${os.tmpdir()}/SAMPLE_${i}.ogg`);
+
+        // Restoring RIFF in header because LBA format has 0 instead of first R
+        if (game === 'Little Big Adventure 2') {
+            new Uint8Array(entry.content)[0] = 0x52;
+        }
+        // Fixed VOC first byte
+        if (game === 'Little Big Adventure') {
+            new Uint8Array(entry.content)[0] = 0x43;
+        }
+        fs.writeFileSync(wavFilePath, Buffer.from(entry.content));
+
+        for (let k = 0; k < num_passes; k += 1) {
+            await convertToM4aAudio(wavFilePath, mp4FilePath, bitrate);
+        }
+        const mp4File = fs.readFileSync(mp4FilePath);
+        const tgtEntry = new HQREntry(
+            toArrayBuffer(mp4File),
+            CompressionType.NONE,
+        );
+        hqrOut.entries.push(tgtEntry);
+        removeFile(wavFilePath);
+        removeFile(mp4FilePath);
+    }
+
+    const outputFile = path.normalize(
+        `./data/${game}/CommonClassic/SAMPLES.HQR`,
+    );
+    fs.writeFileSync(outputFile, Buffer.from(hqrOut.toArrayBuffer()));
 };
 
 const convertToM4aAudio = async (
@@ -165,9 +226,16 @@ const convertToM4aAudio = async (
     }
     removeFile(outputFilePath);
     FFmpeg.runSync(
-        `-i "${inputFilePath}" -c:a libvorbis -b:a ${bitrate}k -af "afftdn=nt=w:tn=enabled" "${outputFilePath}"`,
+        `-i "${inputFilePath}" -c:a libvorbis -af "afftdn=nt=w:tn=enabled" "${outputFilePath}"`,
     );
     removeFile(`${outputFilePath}.bak`);
 };
 
-voiceConvertor('Little Big Adventure');
+const convert = async () => {
+    await samplesConvertor('Little Big Adventure');
+    await voiceConvertor('Little Big Adventure');
+    await samplesConvertor('Little Big Adventure 2');
+    await voiceConvertor('Little Big Adventure 2');
+};
+
+convert();

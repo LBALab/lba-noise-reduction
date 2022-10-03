@@ -4,11 +4,14 @@ This is a tool to reduce the noise in the voice samples of Little Big Adventure 
 
 ## Usage
 
-1. You need to own the Classic version of Little Big Adventure 1 from [itch.io](https://itch.io/s/61876/adeline-software-collection), [Steam](https://store.steampowered.com/developer/2_21) or [GOG](https://www.gog.com/en/games?developers=2-21)
+1. You need to own the Classic version of Little Big Adventure 1 and Little Big Adventure 2 from [itch.io](https://itch.io/s/61876/adeline-software-collection), [Steam](https://store.steampowered.com/developer/2_21) or [GOG](https://www.gog.com/en/games?developers=2-21)
 2. Place the contents of the game in the `data` folder like this:
     - `data/Little Big Adventure`
     - `data/Little Big Adventure/Common`
     - `data/Little Big Adventure/CommonClassic/Voices`
+    - `data/Little Big Adventure 2`
+    - `data/Little Big Adventure 2/Common`
+    - `data/Little Big Adventure 2/CommonClassic/Voices`
 3. Run `npm install`
 4. Run `npm start`
 
