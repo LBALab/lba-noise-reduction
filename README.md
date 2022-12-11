@@ -1,6 +1,6 @@
-# Little Big Adventure 1 Voice Noise Reduction
+# Little Big Adventure 1 & 2 Voice and Sample Noise Reduction
 
-This is a tool to reduce the noise in the voice samples of Little Big Adventure 1. It is not perfect, but it does improve significantly the quality of the voice samples.
+This is a tool to reduce the noise in the voice and samples of Little Big Adventure 1 & 2. It is not perfect, but it does improve significantly the quality of the voice samples.
 
 ## Usage
 
