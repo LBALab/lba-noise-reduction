@@ -6,7 +6,7 @@
     "start": "ts-node src/convert.ts"
   },
   "dependencies": {
-    "@lbalab/hqr": "^3.4.1",
+    "@lbalab/hqr": "^3.4.2",
     "@types/lodash": "^4.14.185",
     "lodash": "^4.17.21"
   },
