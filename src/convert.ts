@@ -226,7 +226,7 @@ const convertToM4aAudio = async (
     }
     removeFile(outputFilePath);
     FFmpeg.runSync(
-        `-i "${inputFilePath}" -c:a libvorbis -af "afftdn=nt=w:tn=enabled" "${outputFilePath}"`,
+        `-i "${inputFilePath}" -c:a libvorbis -af afftdn,anlmdn=s=7:p=0.002:r=0.002:m=15 "${outputFilePath}"`,
     );
     removeFile(`${outputFilePath}.bak`);
 };
